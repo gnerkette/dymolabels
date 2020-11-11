@@ -1,6 +1,6 @@
 //----------------------------------------------------------------------------
 //
-//  $Id: GoogleSpreadSheet.js 38773 2015-09-17 11:45:41Z nmikalko $ 
+//  $Id: GoogleSpreadSheetBarcodeLabel.js 38773 2015-09-17 11:45:41Z nmikalko $ 
 //
 // Project -------------------------------------------------------------------
 //
@@ -19,59 +19,63 @@
 
 
 
-(function () {
+(function()
+{
     var label;
     var labelSet;
 
-    function onload() {
+    function onload()
+    {
         var printButton = document.getElementById('printButton');
         var printersSelect = document.getElementById('printersSelect');
 
-        function createLabelSet(json) {
+        function createLabelSet(json)
+        {
             var labelSet = new dymo.label.framework.LabelSetBuilder();
-
-            for (var i = 0; i < json.feed.entry.length; ++i) {
+         
+            for (var i = 0; i < json.feed.entry.length; ++i)
+            {
                 var entry = json.feed.entry[i];
 
-                var name = entry.gsx$name.$t;
-                var street = entry.gsx$streetaddress.$t;
-                var city = entry.gsx$city.$t;
-                var state = entry.gsx$state.$t;
-                var zip = entry.gsx$zip.$t;
-
-                var address = name + '\n' + street + '\n' + city + ', ' + state + ' ' + zip;
+                var itemDescription = entry.gsx$itemdescription.$t;
+                var itemCode = entry.gsx$itemcode.$t;
 
                 var record = labelSet.addRecord();
-                record.setText("Address", address);
+                record.setText("Description", itemDescription);
+                record.setText("ItemCode", itemCode);
             }
 
             return labelSet;
         }
 
-        function loadSpreadSheetDataCallback(json) {
+        function loadSpreadSheetDataCallback(json)
+        {
             labelSet = createLabelSet(json);
         };
 
         window._loadSpreadSheetDataCallback = loadSpreadSheetDataCallback;
 
-        function loadSpreadSheetData() {
+        function loadSpreadSheetData()
+        {
             removeOldJSONScriptNodes();
 
             var script = document.createElement('script');
 
-            script.setAttribute('src', 'http://spreadsheets.google.com/feeds/list/tSaHQOgyWYZb6mUPGgrsOGg/1/public/values?alt=json-in-script&callback=window._loadSpreadSheetDataCallback');
+            script.setAttribute('src', 'http://spreadsheets.google.com/feeds/list/0Ak2RtsSi0A2bdFdka0Y1VUtZZHQ0VlRGQXg5QzROb2c/1/public/values?alt=json-in-script&callback=window._loadSpreadSheetDataCallback');
             script.setAttribute('id', 'printScript');
             script.setAttribute('type', 'text/javascript');
             document.documentElement.firstChild.appendChild(script);
         };
 
-        function removeOldJSONScriptNodes() {
+        function removeOldJSONScriptNodes()
+        {
             var jsonScript = document.getElementById('printScript');
             if (jsonScript)
                 jsonScript.parentNode.removeChild(jsonScript);
         };
-        // create address label xml
-        function getAddressLabelXml() {
+
+        function getBarcodeLabelXml()
+        {
 
             var labelXml = '<?xml version="1.0" encoding="utf-8"?>\
                             <DieCutLabel Version="8.0" Units="twips">\
@@ -82,50 +86,64 @@
 		                            <RoundRectangle X="0" Y="0" Width="1581" Height="5040" Rx="270" Ry="270" />\
 	                            </DrawCommands>\
 	                            <ObjectInfo>\
-		                            <AddressObject>\
-			                            <Name>Address</Name>\
+		                            <BarcodeObject>\
+			                            <Name>ItemCode</Name>\
 			                            <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />\
 			                            <BackColor Alpha="0" Red="255" Green="255" Blue="255" />\
 			                            <LinkedObjectName></LinkedObjectName>\
 			                            <Rotation>Rotation0</Rotation>\
 			                            <IsMirrored>False</IsMirrored>\
 			                            <IsVariable>True</IsVariable>\
-			                            <HorizontalAlignment>Left</HorizontalAlignment>\
-			                            <VerticalAlignment>Middle</VerticalAlignment>\
+			                            <Text>1234</Text>\
+			                            <Type>Code128Auto</Type>\
+			                            <Size>Small</Size>\
+			                            <TextPosition>Bottom</TextPosition>\
+			                            <TextFont Family="Arial" Size="6" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
+			                            <CheckSumFont Family="Arial" Size="7.3125" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
+			                            <TextEmbedding>None</TextEmbedding>\
+			                            <ECLevel>0</ECLevel>\
+			                            <HorizontalAlignment>Center</HorizontalAlignment>\
+			                            <QuietZonesPadding Left="0" Top="0" Right="0" Bottom="0" />\
+		                            </BarcodeObject>\
+		                            <Bounds X="331" Y="680.31494140625" Width="4622" Height="765.708679199219" />\
+	                            </ObjectInfo>\
+	                            <ObjectInfo>\
+		                            <TextObject>\
+			                            <Name>Description</Name>\
+			                            <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />\
+			                            <BackColor Alpha="0" Red="255" Green="255" Blue="255" />\
+			                            <LinkedObjectName></LinkedObjectName>\
+			                            <Rotation>Rotation0</Rotation>\
+			                            <IsMirrored>False</IsMirrored>\
+			                            <IsVariable>True</IsVariable>\
+			                            <HorizontalAlignment>Center</HorizontalAlignment>\
+			                            <VerticalAlignment>Top</VerticalAlignment>\
 			                            <TextFitMode>ShrinkToFit</TextFitMode>\
 			                            <UseFullFontHeight>True</UseFullFontHeight>\
 			                            <Verticalized>False</Verticalized>\
 			                            <StyledText>\
 				                            <Element>\
-					                            <String>DYMO\
-                                        828 San Pablo Ave Ste 101\
-                                        Albany, CA 94706-1678</String>\
-                                                            <Attributes>\
-                                                                <Font Family="Arial" Size="12" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
-                                                                <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />\
-                                                            </Attributes>\
-                                                        </Element>\
-                                                    </StyledText>\
-                                                    <ShowBarcodeFor9DigitZipOnly>False</ShowBarcodeFor9DigitZipOnly>\
-                                                    <BarcodePosition>AboveAddress</BarcodePosition>\
-                                                    <LineFonts>\
-                                                        <Font Family="Arial" Size="12" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
-                                                        <Font Family="Arial" Size="12" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
-                                                        <Font Family="Arial" Size="12" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
-                                                    </LineFonts>\
-                                     </AddressObject>\
-                                     <Bounds X="332" Y="150" Width="4455" Height="1260" />\
-                                  </ObjectInfo>\
-                             </DieCutLabel>';
+					                            <String>ItemDescription</String>\
+					                            <Attributes>\
+						                            <Font Family="Arial" Size="12" Bold="False" Italic="False" Underline="False" Strikeout="False" />\
+						                            <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />\
+					                            </Attributes>\
+				                            </Element>\
+			                            </StyledText>\
+		                            </TextObject>\
+		                            <Bounds X="331" Y="163" Width="4622" Height="341.566925048828" />\
+	                            </ObjectInfo>\
+                            </DieCutLabel>';
             return labelXml;
         }
 
         function loadLabel()
         {
             // use jQuery API to load label
-            //$.get("Address.label", function (labelXml) {
-            label = dymo.label.framework.openLabelXml(getAddressLabelXml());
-           // }, "text");
+            //$.get("Barcode.label", function(labelXml)
+            //{
+            label = dymo.label.framework.openLabelXml(getBarcodeLabelXml());
+            //}, "text");
         }
 
         // loads all supported printers into a combo box 
@@ -138,7 +156,8 @@
                 return;
             }
 
-            for (var i = 0; i < printers.length; ++i) {
+            for (var i = 0; i < printers.length; ++i)
+            {
                 var printer = printers[i];
                 var printerName = printer.name;
 
@@ -150,8 +169,10 @@
         }
 
         // prints the label
-        printButton.onclick = function () {
-            try {
+        printButton.onclick = function()
+        {
+            try
+            {
                 if (!label)
                     throw "Label is not loaded";
 
@@ -160,17 +181,19 @@
 
                 label.print(printersSelect.value, '', labelSet);
 
-                //                var records = labelSet.getRecords();
-                //                for (var i = 0; i < records.length; ++i)
-                //                {
-                //                    label.setObjectText("Address", records[i]["Address"]);
-                //                    var pngData = label.render();
-                //
-                //                    var labelImage = document.getElementById('img' + (i + 1));
-                //                    labelImage.src = "data:image/png;base64," + pngData;
-                //                }
+//                var records = labelSet.getRecords();
+//                for (var i = 0; i < records.length; ++i)
+//                {
+//                    label.setObjectText("Description", records[i]["Description"]);
+//                    label.setObjectText("ItemCode", records[i]["ItemCode"]);
+//                    var pngData = label.render();
+//
+//                    var labelImage = document.getElementById('img' + (i + 1));
+//                    labelImage.src = "data:image/png;base64," + pngData;
+//                }
             }
-            catch (e) {
+            catch (e)
+            {
                 alert(e.message || e);
             }
         };
@@ -200,4 +223,4 @@
 	else
 		window.onload = initTests;
 
-}());
+} ());
